@@ -101,7 +101,13 @@ function ensureLocation() {
   if(demoLocationEnabled || !navigator.geolocation) return Promise.resolve(currentLocation={lat:-1.29,lon:36.82});
   return new Promise(resolve=>navigator.geolocation.getCurrentPosition(pos=>{currentLocation=roundLocation(pos);resolve(currentLocation)},()=>{currentLocation={lat:-1.29,lon:36.82};toast("Location unavailable; using demo region.");resolve(currentLocation)},{enableHighAccuracy:false,timeout:6000,maximumAge:600000}));
 }
-function connectionState() { const online=navigator.onLine; $("connectionDot").classList.toggle("offline",!online); $("connectionLabel").textContent=online?"Connected · auto-sync enabled":"Offline mode · reports stay on device"; $("syncStatus").textContent=online?"Auto-sync is active. Saved reports will send quietly whenever this phone has a connection.":"Offline: reports remain safely on this phone and will send automatically when a connection returns."; if(online)syncQueue({silent:true}); }
+let offlineReady = false;
+async function checkOfflineReady() {
+  // True only when the service worker has stored the model weights and the page shell.
+  try { offlineReady = !!(navigator.serviceWorker?.controller && await caches.match("/model-coffee-v1/group1-shard1of1.bin") && await caches.match("/index.html") && await caches.match("/audio/coffee-rust-sw.mp3")); } catch { offlineReady = false; }
+  connectionState(); if (!offlineReady) setTimeout(checkOfflineReady, 2000);
+}
+function connectionState() { const online=navigator.onLine; $("connectionDot").classList.toggle("offline",!online); $("connectionLabel").textContent=online?(offlineReady?"Connected · ready for offline use ✓":"Connected · preparing offline mode…"):"Offline mode · reports stay on device"; $("syncStatus").textContent=online?"Auto-sync is active. Saved reports will send quietly whenever this phone has a connection.":"Offline: reports remain safely on this phone and will send automatically when a connection returns."; if(online)syncQueue({silent:true}); }
 function renderQueue() { const queue=getQueue(), list=$("queue"); $("queueCount").textContent=`${queue.length} pending`; $("queueEmpty").hidden=queue.length>0; list.innerHTML=""; queue.slice().reverse().forEach(r=>{const item=document.createElement("div");item.className="queue-item";const context=r.observations?.length?` · ${r.observations.join(", ")}`:"";item.innerHTML=`<b>${displayLabel(r.label)}</b><span>${r.lat.toFixed(2)}, ${r.lon.toFixed(2)}${context} · waiting for network</span>`;list.append(item)}); }
 
 async function loadClassifier() {
@@ -167,12 +173,12 @@ async function syncQueue({silent=false}={}) {
   if(!silent)toast(left?`${left} report(s) still waiting.`:"Anonymous community signal shared.");
 }
 function setup() {
-  $("photoInput").addEventListener("change",event=>{const file=event.target.files[0];if(!file)return;const preview=$("preview");preview.src=URL.createObjectURL(file);preview.hidden=false;$("cameraCopy").hidden=true;$("analysis").classList.remove("visible");currentResult=null});
+  ["photoInput","cameraInput"].forEach(id=>$(id).addEventListener("change",event=>{const file=event.target.files[0];if(!file)return;const preview=$("preview");preview.src=URL.createObjectURL(file);preview.hidden=false;$("cameraCopy").hidden=true;$("analysis").classList.remove("visible");currentResult=null}));
   $("sampleBtn").addEventListener("click",async()=>{const preview=$("preview");preview.src="/test-images/coffee-leaf-rust.jpg";preview.hidden=false;$("cameraCopy").hidden=true;$("analysis").classList.remove("visible");await preview.decode();await analyzePhoto();});
   $("analyzeBtn").addEventListener("click",analyzePhoto); $("saveBtn").addEventListener("click",saveReport); $("speakBtn").addEventListener("click",speakAdvice); $("smsBtn").addEventListener("click",composeSms);
   $("languageSelect").addEventListener("change",()=>{stopVoice(); $("voiceNote").textContent=isSwahili()?"Kiswahili pilot: pre-generated offline audio is bundled for coffee-rust and uncertain guidance. Other labels use an installed device voice.":"Voice uses an installed phone voice when available. SMS opens the phone's messaging app; the worker chooses whether to send it."; if(currentResult&&!currentResult.uncertain)renderGuidance(currentResult.label); });
-  $("newCheckBtn").addEventListener("click",()=>{stopVoice();$("analysis").classList.remove("visible");$("photoInput").value="";$("preview").hidden=true;$("cameraCopy").hidden=false;$("saveBtn").disabled=false;currentResult=null});
+  $("newCheckBtn").addEventListener("click",()=>{stopVoice();$("analysis").classList.remove("visible");$("photoInput").value="";$("cameraInput").value="";$("preview").hidden=true;$("cameraCopy").hidden=false;$("saveBtn").disabled=false;currentResult=null});
   $("demoLocationBtn").addEventListener("click",()=>{demoLocationEnabled=!demoLocationEnabled;currentLocation=null;$("demoLocationBtn").textContent=demoLocationEnabled?"Demo location enabled ✓":"Use demo location";toast(demoLocationEnabled?"Demo location enabled. Sync remains available.":"Demo location turned off.")});
-  window.addEventListener("online",connectionState);window.addEventListener("offline",connectionState);renderQueue();connectionState();setInterval(()=>syncQueue({silent:true}),4000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncQueue({silent:true})});if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});loadClassifier();
+  window.addEventListener("online",connectionState);window.addEventListener("offline",connectionState);renderQueue();connectionState();setInterval(()=>syncQueue({silent:true}),4000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncQueue({silent:true})});if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").then(()=>navigator.serviceWorker.ready).then(checkOfflineReady).catch(()=>{});loadClassifier();
 }
 setup();

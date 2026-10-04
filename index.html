@@ -35,7 +35,7 @@
           <label class="crop-select" for="languageSelect">Guidance language<select id="languageSelect"><option value="en">English</option><option value="sw">Kiswahili · pilot</option></select></label>
         </div>
         <fieldset class="observation-card"><legend>What do you see? <span>Optional · stays with this anonymous signal</span></legend><div class="observation-options"><label><input type="checkbox" name="observation" value="spreading"> Marks are spreading</label><label><input type="checkbox" name="observation" value="wet"> Leaf or field is wet</label><label><input type="checkbox" name="observation" value="many-plants"> More than one plant</label><label><input type="checkbox" name="observation" value="underside"> Marks under the leaf</label></div><p>Use this context to help the extension worker prioritise review. It does not change the model’s result.</p></fieldset>
-        <div class="camera"><div class="camera-copy" id="cameraCopy"><b>Take or select a coffee-leaf photo</b><span>Fill the frame with one leaf. The photo stays on this phone.</span><label class="file-label">Choose a photo<input id="photoInput" type="file" accept="image/*" capture="environment"></label></div><img id="preview" alt="Selected coffee leaf preview" hidden></div>
+        <div class="camera"><div class="camera-copy" id="cameraCopy"><b>Take or select a coffee-leaf photo</b><span>Fill the frame with one leaf. The photo stays on this phone.</span><div class="actions" style="justify-content:center"><label class="file-label">Take a photo<input id="cameraInput" type="file" accept="image/*" capture="environment" hidden></label><label class="file-label">Choose from gallery<input id="photoInput" type="file" accept="image/*" hidden></label></div></div><img id="preview" alt="Selected coffee leaf preview" hidden></div>
         <p class="model-status" id="modelStatus">Loading the on-device coffee model…</p>
         <div class="actions"><button class="button dark" id="analyzeBtn" disabled>Loading model…</button><button class="button secondary" id="sampleBtn">Try coffee-rust demo</button></div>
         <div class="analysis" id="analysis">
@@ -64,6 +64,6 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="/vendor/tf.min.js?v=2"></script>
   <script src="/knowledge-base.js?v=2"></script>
-  <script src="/app.js?v=21"></script>
+  <script src="/app.js?v=23"></script>
 </body>
 </html>
