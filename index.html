@@ -44,6 +44,7 @@
           <p id="resultText"></p>
           <p><b>Suggested next step:</b> <span id="advice"></span></p>
           <div class="actions"><button class="button secondary" id="speakBtn">▶ Hear guidance</button><button class="button secondary" id="smsBtn">Prepare SMS report</button></div>
+          <div class="sms-fallback" id="smsPreview" hidden><p class="eyebrow">SMS draft · to <span id="smsPreviewTo"></span></p><p id="smsPreviewText" style="color:#133c2b;font-weight:600"></p><div class="actions"><button class="button secondary" id="smsCopyBtn">Copy message</button><button class="button" id="smsOpenBtn" hidden>Open messaging app</button></div></div>
           <p class="assist-note" id="voiceNote">For the Kiswahili rust and uncertainty guidance, CropSignal plays a pre-generated audio clip saved on this phone. Other guidance uses an installed device voice. SMS opens the phone's messaging app; the worker chooses whether to send it.</p>
           <div class="actions"><button class="button" id="saveBtn">Save anonymous report</button><button class="button secondary" id="newCheckBtn">Start new check</button></div>
         </div>
@@ -54,7 +55,7 @@
         <div class="queue" id="queue"></div>
         <div class="actions"><button class="button secondary" id="demoLocationBtn">Use demo location</button></div>
         <p class="assist-note" id="syncStatus">Auto-sync is ready: queued reports will send when a connection returns.</p>
-        <section class="sms-fallback"><p class="eyebrow">Basic-phone fallback</p><h3>Send a short SMS signal</h3><p>When mobile data is unavailable but cellular SMS works, open a short report for a local extension worker. It never includes the photo or the farmer's name.</p><label for="smsNumber">Extension-worker number<input id="smsNumber" type="tel" inputmode="tel" placeholder="+254…"></label></section>
+        <section class="sms-fallback"><p class="eyebrow">Basic-phone fallback</p><h3>Send a short SMS signal</h3><p>When mobile data is unavailable but cellular SMS works, open a short report for a local extension worker. It never includes the photo or the farmer's name.</p><label for="smsNumber">Extension-worker number<input id="smsNumber" type="tel" inputmode="tel" placeholder="+254…" value="+254700000000"></label></section>
         <div class="privacy"><span>⌾</span><div><b>What is shared?</b><br>Diagnosis label, confidence, time and a rounded location. Never the photo or your name.</div></div>
       </aside>
     </section>
@@ -63,6 +64,6 @@
   <div class="toast" id="toast" role="status"></div>
   <script src="/vendor/tf.min.js?v=2"></script>
   <script src="/knowledge-base.js?v=2"></script>
-  <script src="/app.js?v=18"></script>
+  <script src="/app.js?v=20"></script>
 </body>
 </html>

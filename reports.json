@@ -8,6 +8,42 @@
     "createdAt": "2026-10-03T20:58:05.444Z"
   },
   {
+    "id": "field-67b479fe-d4e9-449a-88f2-0713b6624880",
+    "label": "Leaf_rust",
+    "lat": -1.29,
+    "lon": 36.82,
+    "confidence": 0.95,
+    "observations": [
+      "wet"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-04T08:53:05.179Z"
+  },
+  {
+    "id": "field-7b353eb7-c157-48e2-819a-a76af6867cf9",
+    "label": "Leaf_rust",
+    "lat": -1.29,
+    "lon": 36.82,
+    "confidence": 0.95,
+    "observations": [
+      "wet"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-04T08:53:51.903Z"
+  },
+  {
+    "id": "field-802287d9-c82e-4622-a3d3-7328aa2ef768",
+    "label": "Leaf_rust",
+    "lat": -1.29,
+    "lon": 36.82,
+    "confidence": 0.95,
+    "observations": [
+      "spreading"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-04T08:58:40.695Z"
+  },
+  {
     "id": "demo-cluster-0",
     "label": "Leaf_rust",
     "lat": -1.28,
@@ -18,7 +54,7 @@
       "underside"
     ],
     "language": "sw",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   },
   {
     "id": "demo-cluster-1",
@@ -31,7 +67,7 @@
       "underside"
     ],
     "language": "sw",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   },
   {
     "id": "demo-cluster-2",
@@ -44,7 +80,7 @@
       "underside"
     ],
     "language": "sw",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   },
   {
     "id": "demo-cluster-3",
@@ -57,7 +93,7 @@
       "underside"
     ],
     "language": "sw",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   },
   {
     "id": "demo-cluster-4",
@@ -70,7 +106,7 @@
       "underside"
     ],
     "language": "sw",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   },
   {
     "id": "demo-cluster-5",
@@ -83,7 +119,7 @@
       "underside"
     ],
     "language": "sw",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   },
   {
     "id": "demo-isolated-0",
@@ -93,7 +129,7 @@
     "confidence": 0.78,
     "observations": [],
     "language": "en",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   },
   {
     "id": "demo-isolated-1",
@@ -103,7 +139,7 @@
     "confidence": 0.78,
     "observations": [],
     "language": "en",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   },
   {
     "id": "demo-isolated-2",
@@ -113,6 +149,6 @@
     "confidence": 0.78,
     "observations": [],
     "language": "en",
-    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+    "createdAt": "2026-10-04T09:00:21.063418+00:00"
   }
 ]

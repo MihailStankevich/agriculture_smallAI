@@ -38,32 +38,46 @@ function adviceForVoice() {
   const item=guidance(currentResult.label);
   return `CropSignal guidance. ${displayLabel(currentResult.label)}. Do now: ${item.action}. Monitor: ${item.monitor}. Avoid: ${item.avoid}`;
 }
+let voiceAudio = null;
+async function playAudio(source) {
+  if (voiceAudio) voiceAudio.pause();
+  voiceAudio = new Audio(source); await voiceAudio.play();
+}
 async function speakAdvice() {
-  // Deployment uses short pre-generated clips bundled in the PWA. Until clips are
-  // generated, or for labels without a reviewed clip, the device voice remains
-  // the offline fallback.
+  // 1) live ElevenLabs voice via the local server (key never reaches the phone),
+  // 2) bundled pre-generated Kiswahili clips (offline), 3) installed device voice.
+  const text = adviceForVoice(), button = $("speakBtn");
+  if (navigator.onLine) {
+    button.disabled = true; button.textContent = "Generating voice…";
+    try {
+      const response = await fetch("/api/tts", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({text})});
+      if (response.ok) { const url = URL.createObjectURL(await response.blob()); await playAudio(url); return; }
+    } catch (_) { /* fall through to bundled clip */ }
+    finally { button.disabled = false; button.textContent = "▶ Hear guidance"; }
+  }
   const clip = isSwahili() && currentResult ? (currentResult.uncertain ? "/audio/uncertain-sw.mp3" : currentResult.label === "Leaf_rust" ? "/audio/coffee-rust-sw.mp3" : null) : null;
   if (clip) {
-    try {
-      const response = await fetch(clip);
-      if (response.ok) { const audio = new Audio(clip); await audio.play(); return; }
-    } catch (_) { /* fall through to installed device voice */ }
+    try { await playAudio(clip); return; } catch (_) { /* fall through to installed device voice */ }
   }
   if (!("speechSynthesis" in window)) return toast("This phone does not provide a device voice.");
   window.speechSynthesis.cancel();
-  const utterance=new SpeechSynthesisUtterance(adviceForVoice());
+  const utterance=new SpeechSynthesisUtterance(text);
   utterance.lang=isSwahili()?"sw-KE":"en-KE"; utterance.rate=.9;
   window.speechSynthesis.speak(utterance);
 }
 function composeSms() {
   if (!currentResult) return toast("Analyze a crop leaf before preparing an SMS.");
   const number=$("smsNumber").value.trim().replace(/[^+\d]/g,"");
-  if (!number) return toast("Add the local extension-worker SMS number first.");
   const crop="Arabica coffee";
   const status=currentResult.uncertain?"REVIEW NEEDED":"FIELD SIGNAL";
   const context=selectedObservations().join(", ") || "no symptoms selected";
   const message=isSwahili()?`${swahili.sms}: ${crop}; ${displayLabel(currentResult.label)}; uhakika ${Math.round(currentResult.confidence*100)}%; dalili: ${context}. Hakuna picha au jina.`:`CropSignal ${status}: ${crop}; ${displayLabel(currentResult.label)}; confidence ${Math.round(currentResult.confidence*100)}%; signs: ${context}. No photo or name shared.`;
-  window.location.href=`sms:${number}?body=${encodeURIComponent(message)}`;
+  // Desktop browsers have no sms: handler (this used to fail with an error page),
+  // so always show the drafted message and only offer the phone action on mobile.
+  $("smsPreviewText").textContent=message; $("smsPreviewTo").textContent=number||"(add the extension-worker number)"; $("smsPreview").hidden=false;
+  const open=$("smsOpenBtn"); open.hidden=!/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)||!number;
+  open.onclick=()=>{ window.location.href=`sms:${number}${/iPhone|iPad/i.test(navigator.userAgent)?"&":"?"}body=${encodeURIComponent(message)}`; };
+  $("smsCopyBtn").onclick=async()=>{ try { await navigator.clipboard.writeText(message); toast("SMS text copied."); } catch { toast("Select the text above and copy it."); } };
 }
 function roundLocation(position) { return {lat:Math.round(position.coords.latitude*100)/100,lon:Math.round(position.coords.longitude*100)/100}; }
 function ensureLocation() {
@@ -121,9 +135,20 @@ async function saveReport() {
   const location=await ensureLocation(); const report={id:`field-${crypto.randomUUID?crypto.randomUUID():Date.now()}`,label:currentResult.label,confidence:Number(currentResult.confidence.toFixed(2)),lat:location.lat,lon:location.lon,observations:selectedObservations(),language:$("languageSelect").value,createdAt:new Date().toISOString()};
   const queue=getQueue();queue.push(report);setQueue(queue);renderQueue();savedCurrent=true;$("saveBtn").textContent="Saved to this device ✓";toast("Saved locally. Your photo was not uploaded."); if(navigator.onLine)syncQueue({silent:true});
 }
+let syncing = false;
 async function syncQueue({silent=false}={}) {
-  if(!navigator.onLine){if(!silent)toast("Still offline. Your reports remain queued safely.");return} const queue=getQueue();if(!queue.length)return;
-  const failed=[];$("syncStatus").textContent="Auto-sync: sending queued anonymous signals…";for(const report of queue){try{const response=await fetch("/api/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(report)});if(!response.ok)throw new Error()}catch{failed.push(report)}}setQueue(failed);renderQueue();$("syncStatus").textContent=failed.length?`Auto-sync paused: ${failed.length} report(s) will retry when the connection improves.`:"Auto-sync complete. Only anonymous signals were shared; photos stay on this phone.";if(!silent)toast(failed.length?`${failed.length} report(s) still waiting.`:"Anonymous community signal shared.");
+  if(!navigator.onLine){if(!silent)toast("Still offline. Your reports remain queued safely.");return}
+  if(syncing||!getQueue().length)return; syncing=true;
+  $("syncStatus").textContent="Auto-sync: sending queued anonymous signals…";
+  try {
+    // Remove each report as soon as it is accepted, so a concurrent save is never overwritten.
+    for(const report of getQueue()){
+      try{const response=await fetch("/api/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(report)});if(!response.ok)throw new Error();setQueue(getQueue().filter(item=>item.id!==report.id));renderQueue()}catch{}
+    }
+  } finally { syncing=false; }
+  const left=getQueue().length; renderQueue();
+  $("syncStatus").textContent=left?`Auto-sync paused: ${left} report(s) will retry in a few seconds.`:"Auto-sync complete. Only anonymous signals were shared; photos stay on this phone.";
+  if(!silent)toast(left?`${left} report(s) still waiting.`:"Anonymous community signal shared.");
 }
 function setup() {
   $("photoInput").addEventListener("change",event=>{const file=event.target.files[0];if(!file)return;const preview=$("preview");preview.src=URL.createObjectURL(file);preview.hidden=false;$("cameraCopy").hidden=true;$("analysis").classList.remove("visible");currentResult=null});
@@ -132,6 +157,6 @@ function setup() {
   $("languageSelect").addEventListener("change",()=>{ $("voiceNote").textContent=isSwahili()?"Kiswahili pilot: pre-generated offline audio is bundled for coffee-rust and uncertain guidance. Other labels use an installed device voice.":"Voice uses an installed phone voice when available. SMS opens the phone's messaging app; the worker chooses whether to send it."; if(currentResult&&!currentResult.uncertain)renderGuidance(currentResult.label); });
   $("newCheckBtn").addEventListener("click",()=>{$("analysis").classList.remove("visible");$("photoInput").value="";$("preview").hidden=true;$("cameraCopy").hidden=false;$("saveBtn").disabled=false;currentResult=null});
   $("demoLocationBtn").addEventListener("click",()=>{demoLocationEnabled=!demoLocationEnabled;currentLocation=null;$("demoLocationBtn").textContent=demoLocationEnabled?"Demo location enabled ✓":"Use demo location";toast(demoLocationEnabled?"Demo location enabled. Sync remains available.":"Demo location turned off.")});
-  window.addEventListener("online",connectionState);window.addEventListener("offline",connectionState);renderQueue();connectionState();setInterval(()=>syncQueue({silent:true}),30000);if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});loadClassifier();
+  window.addEventListener("online",connectionState);window.addEventListener("offline",connectionState);renderQueue();connectionState();setInterval(()=>syncQueue({silent:true}),4000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncQueue({silent:true})});if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});loadClassifier();
 }
 setup();

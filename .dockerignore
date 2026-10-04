@@ -1,0 +1,10 @@
+data
+training
+.git
+__pycache__
+tmp
+file.pdf
+artifacts
+model
+model-multicrop
+model-multicrop-v2

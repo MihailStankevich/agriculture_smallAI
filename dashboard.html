@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="/styles.css?v=3">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>#alertBanner{position:fixed;top:-120px;left:50%;transform:translateX(-50%);z-index:2000;background:#b3261e;color:#fff;padding:14px 22px;border-radius:14px;box-shadow:0 12px 40px #0006;font-weight:700;display:flex;gap:10px;align-items:center;max-width:92vw;transition:top .5s cubic-bezier(.2,1.2,.4,1)}#alertBanner.show{top:18px}
+    .alert.pulse{animation:alertpulse 1s ease-in-out 4}@keyframes alertpulse{0%,100%{box-shadow:0 0 0 0 #d94b3d00}50%{box-shadow:0 0 0 10px #d94b3d55}}
+    #realmap{width:100%;height:440px;border-radius:14px;z-index:0}.leaflet-container{font-family:system-ui}</style>
   <title>CropSignal | Extension dashboard</title>
 </head>
 <body>
@@ -25,7 +29,7 @@
     <section class="dashboard-grid">
       <section class="card map-wrap">
         <div class="map-header"><div><p class="eyebrow">Regional view · coffee pilot only</p><h2>Where should a field visit go first?</h2><p class="map-explainer">Green dots are anonymous coffee signals. A red circle means the same condition appeared repeatedly nearby.</p></div><div class="actions"><button class="button" id="seedBtn">Show coffee-rust demo</button></div></div>
-        <canvas class="map" id="map" aria-label="Map of anonymous field reports"></canvas>
+        <div id="realmap" aria-label="Map of anonymous field reports"></div><canvas class="map" id="map" hidden aria-label="Fallback map of anonymous field reports"></canvas>
         <div class="legend"><span><i></i>Field report</span><span><i class="alertdot"></i>Potential outbreak</span></div>
       </section>
       <aside class="card"><p class="eyebrow">Action queue</p><h2>What needs a visit?</h2><p class="queue-intro">Read an alert from top to bottom: why it was flagged, what workers observed, then the safe next action.</p><div class="outbreak-list" id="outbreakList"><p class="empty">No coffee clusters meet the threshold yet.</p></div><p class="eyebrow" style="margin-top:23px">Latest coffee signals</p><div class="report-list" id="reportList"></div></aside>
@@ -33,7 +37,9 @@
     <section class="card workflow-card"><p class="eyebrow">How this works</p><div class="workflow"><div><b>1 · Farmer checks offline</b><span>The model and voice run on the phone. The photo stays there.</span></div><div><b>2 · Signal syncs automatically</b><span>When any connection returns, only the label, confidence, time and rounded location are shared.</span></div><div><b>3 · Extension worker verifies</b><span>Only a real field visit can confirm a problem and approve a local message.</span></div></div></section>
     <p class="footer-note">This dashboard detects statistical clusters, not confirmed disease outbreaks. Follow-up must be performed by qualified local agricultural extension services.</p>
   </main>
+  <div id="alertBanner" role="alert">🚨 <b>Outbreak alert</b><span></span></div>
   <div class="toast" id="toast" role="status"></div>
-  <script src="/dashboard.js?v=6"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/dashboard.js?v=8"></script>
 </body>
 </html>

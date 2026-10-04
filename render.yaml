@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: cropsignal
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: ELEVENLABS_API_KEY
+        sync: false

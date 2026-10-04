@@ -3,8 +3,12 @@ from __future__ import annotations
 
 import json
 import math
+import hashlib
 import mimetypes
+import os
 import threading
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -17,6 +21,30 @@ LOCK = threading.Lock()
 RADIUS_KM = 12
 WINDOW_DAYS = 7
 MIN_REPORTS = 5
+TTS_HITS: dict[str, list[float]] = {}
+TTS_PER_MINUTE = 12  # per client IP; protects the ElevenLabs credits on a public demo
+TTS_CACHE = ROOT / "tmp" / "tts-cache"
+TTS_API = "https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+TTS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "JBFqnCBsd6RMkjVDRZzb")
+
+
+def synthesize(text: str) -> bytes:
+    """ElevenLabs TTS proxy; the key stays on the server and clips are cached on disk."""
+    key = os.environ.get("ELEVENLABS_API_KEY")
+    if not key:
+        raise RuntimeError("ELEVENLABS_API_KEY is not set for the server process.")
+    cached = TTS_CACHE / (hashlib.sha256(f"{TTS_VOICE}|{text}".encode("utf-8")).hexdigest() + ".mp3")
+    if cached.exists():
+        return cached.read_bytes()
+    body = json.dumps({"text": text, "model_id": "eleven_multilingual_v2",
+                       "voice_settings": {"stability": 0.55, "similarity_boost": 0.75}}, ensure_ascii=False).encode("utf-8")
+    request = Request(TTS_API.format(voice_id=TTS_VOICE), data=body, method="POST",
+                      headers={"xi-api-key": key, "Content-Type": "application/json", "Accept": "audio/mpeg"})
+    with urlopen(request, timeout=30) as response:
+        audio = response.read()
+    TTS_CACHE.mkdir(parents=True, exist_ok=True)
+    cached.write_bytes(audio)
+    return audio
 
 
 def now() -> str:
@@ -147,6 +175,29 @@ class Handler(SimpleHTTPRequestHandler):
         except json.JSONDecodeError:
             self.send_json({"error": "Invalid JSON."}, HTTPStatus.BAD_REQUEST)
             return
+        if path == "/api/tts":
+            client = self.headers.get("X-Forwarded-For", self.client_address[0]).split(",")[0].strip()
+            stamp = datetime.now().timestamp()
+            recent = [t for t in TTS_HITS.get(client, []) if stamp - t < 60]
+            if len(recent) >= TTS_PER_MINUTE:
+                self.send_json({"error": "Too many voice requests."}, HTTPStatus.TOO_MANY_REQUESTS)
+                return
+            TTS_HITS[client] = recent + [stamp]
+            text = str(payload.get("text", "")).strip()[:1200]
+            if not text:
+                self.send_json({"error": "Text is required."}, HTTPStatus.BAD_REQUEST)
+                return
+            try:
+                audio = synthesize(text)
+            except (RuntimeError, URLError, OSError) as error:
+                self.send_json({"error": f"Voice unavailable: {error}"}, HTTPStatus.BAD_GATEWAY)
+                return
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "audio/mpeg")
+            self.send_header("Content-Length", str(len(audio)))
+            self.end_headers()
+            self.wfile.write(audio)
+            return
         with LOCK:
             if path == "/api/reports":
                 try:
@@ -176,8 +227,8 @@ class Handler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     mimetypes.add_type("application/manifest+json", ".webmanifest")
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), Handler)
-    print("CropSignal running at http://localhost:8000")
+    server = ThreadingHTTPServer((os.environ.get("HOST", "127.0.0.1"), int(os.environ.get("PORT", "8000"))), Handler)
+    print(f"CropSignal running on port {server.server_port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
