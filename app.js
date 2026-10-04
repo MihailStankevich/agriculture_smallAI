@@ -38,32 +38,48 @@ function adviceForVoice() {
   const item=guidance(currentResult.label);
   return `CropSignal guidance. ${displayLabel(currentResult.label)}. Do now: ${item.action}. Monitor: ${item.monitor}. Avoid: ${item.avoid}`;
 }
-let voiceAudio = null;
-async function playAudio(source) {
-  if (voiceAudio) voiceAudio.pause();
-  voiceAudio = new Audio(source); await voiceAudio.play();
+let voiceAudio = null, voiceBusy = false, voiceToken = 0;
+const setSpeakButton = mode => { const b=$("speakBtn"); b.disabled=mode==="loading"; b.textContent=mode==="playing"?"■ Stop":mode==="loading"?"Generating voice…":"▶ Hear guidance"; };
+function stopVoice() {
+  voiceToken++; voiceBusy=false;
+  if (voiceAudio) { voiceAudio.pause(); voiceAudio=null; }
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  setSpeakButton("idle");
+}
+function playAudio(source, token) {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio(source); voiceAudio = audio;
+    const done = () => { if (token === voiceToken) stopVoice(); resolve(); };
+    audio.onended = done; audio.onerror = () => reject(new Error("audio"));
+    audio.play().then(() => { if (token === voiceToken) setSpeakButton("playing"); }, reject);
+  });
 }
 async function speakAdvice() {
+  if (voiceBusy) return stopVoice();
   // 1) live ElevenLabs voice via the local server (key never reaches the phone),
   // 2) bundled pre-generated Kiswahili clips (offline), 3) installed device voice.
-  const text = adviceForVoice(), button = $("speakBtn");
+  stopVoice(); voiceBusy = true; const token = voiceToken, text = adviceForVoice();
   if (navigator.onLine) {
-    button.disabled = true; button.textContent = "Generating voice…";
+    setSpeakButton("loading");
     try {
       const response = await fetch("/api/tts", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({text})});
-      if (response.ok) { const url = URL.createObjectURL(await response.blob()); await playAudio(url); return; }
+      if (token !== voiceToken) return;
+      if (response.ok) { await playAudio(URL.createObjectURL(await response.blob()), token); return; }
     } catch (_) { /* fall through to bundled clip */ }
-    finally { button.disabled = false; button.textContent = "▶ Hear guidance"; }
+    if (token !== voiceToken) return;
+    setSpeakButton("idle");
   }
   const clip = isSwahili() && currentResult ? (currentResult.uncertain ? "/audio/uncertain-sw.mp3" : currentResult.label === "Leaf_rust" ? "/audio/coffee-rust-sw.mp3" : null) : null;
   if (clip) {
-    try { await playAudio(clip); return; } catch (_) { /* fall through to installed device voice */ }
+    try { await playAudio(clip, token); return; } catch (_) { /* fall through to installed device voice */ }
+    if (token !== voiceToken) return;
   }
-  if (!("speechSynthesis" in window)) return toast("This phone does not provide a device voice.");
+  if (!("speechSynthesis" in window)) { stopVoice(); return toast("This phone does not provide a device voice."); }
   window.speechSynthesis.cancel();
   const utterance=new SpeechSynthesisUtterance(text);
   utterance.lang=isSwahili()?"sw-KE":"en-KE"; utterance.rate=.9;
-  window.speechSynthesis.speak(utterance);
+  utterance.onend = utterance.onerror = () => { if (token === voiceToken) stopVoice(); };
+  window.speechSynthesis.speak(utterance); setSpeakButton("playing");
 }
 function composeSms() {
   if (!currentResult) return toast("Analyze a crop leaf before preparing an SMS.");
@@ -115,7 +131,7 @@ async function analyzePhoto() {
     });
     const values=await probabilities.data(); probabilities.dispose();
     let best=0; for(let index=1;index<values.length;index++) if(values[index]>values[best])best=index;
-    currentResult={label:labels[best],confidence:values[best],uncertain:values[best]<0.60}; savedCurrent=false;
+    stopVoice();currentResult={label:labels[best],confidence:values[best],uncertain:values[best]<0.60}; savedCurrent=false;
     if(currentResult.uncertain) {
       $("resultLabel").textContent="Uncertain — do not report";
       $("resultText").textContent=`The photo did not confidently match a supported coffee-leaf condition. Closest label: ${displayLabel(currentResult.label)} at ${Math.round(currentResult.confidence*100)}%.`;
@@ -154,8 +170,8 @@ function setup() {
   $("photoInput").addEventListener("change",event=>{const file=event.target.files[0];if(!file)return;const preview=$("preview");preview.src=URL.createObjectURL(file);preview.hidden=false;$("cameraCopy").hidden=true;$("analysis").classList.remove("visible");currentResult=null});
   $("sampleBtn").addEventListener("click",async()=>{const preview=$("preview");preview.src="/test-images/coffee-leaf-rust.jpg";preview.hidden=false;$("cameraCopy").hidden=true;$("analysis").classList.remove("visible");await preview.decode();await analyzePhoto();});
   $("analyzeBtn").addEventListener("click",analyzePhoto); $("saveBtn").addEventListener("click",saveReport); $("speakBtn").addEventListener("click",speakAdvice); $("smsBtn").addEventListener("click",composeSms);
-  $("languageSelect").addEventListener("change",()=>{ $("voiceNote").textContent=isSwahili()?"Kiswahili pilot: pre-generated offline audio is bundled for coffee-rust and uncertain guidance. Other labels use an installed device voice.":"Voice uses an installed phone voice when available. SMS opens the phone's messaging app; the worker chooses whether to send it."; if(currentResult&&!currentResult.uncertain)renderGuidance(currentResult.label); });
-  $("newCheckBtn").addEventListener("click",()=>{$("analysis").classList.remove("visible");$("photoInput").value="";$("preview").hidden=true;$("cameraCopy").hidden=false;$("saveBtn").disabled=false;currentResult=null});
+  $("languageSelect").addEventListener("change",()=>{stopVoice(); $("voiceNote").textContent=isSwahili()?"Kiswahili pilot: pre-generated offline audio is bundled for coffee-rust and uncertain guidance. Other labels use an installed device voice.":"Voice uses an installed phone voice when available. SMS opens the phone's messaging app; the worker chooses whether to send it."; if(currentResult&&!currentResult.uncertain)renderGuidance(currentResult.label); });
+  $("newCheckBtn").addEventListener("click",()=>{stopVoice();$("analysis").classList.remove("visible");$("photoInput").value="";$("preview").hidden=true;$("cameraCopy").hidden=false;$("saveBtn").disabled=false;currentResult=null});
   $("demoLocationBtn").addEventListener("click",()=>{demoLocationEnabled=!demoLocationEnabled;currentLocation=null;$("demoLocationBtn").textContent=demoLocationEnabled?"Demo location enabled ✓":"Use demo location";toast(demoLocationEnabled?"Demo location enabled. Sync remains available.":"Demo location turned off.")});
   window.addEventListener("online",connectionState);window.addEventListener("offline",connectionState);renderQueue();connectionState();setInterval(()=>syncQueue({silent:true}),4000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncQueue({silent:true})});if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});loadClassifier();
 }
