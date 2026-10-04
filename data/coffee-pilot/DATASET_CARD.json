@@ -1,0 +1,13 @@
+{
+  "source": "Project-AgML/arabica_coffee_leaf_disease_classification (JMuBEN/JMuBEN2)",
+  "original_collection": "Mutira coffee plantation, Kirinyaga County, Kenya",
+  "classes": [
+    "Cerscospora",
+    "Healthy",
+    "Leaf_rust",
+    "Miner",
+    "Phoma"
+  ],
+  "images_per_class_requested": 40,
+  "warning": "Development subset only. Source dataset has known duplicates; do not report this split as an external field evaluation."
+}

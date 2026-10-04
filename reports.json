@@ -1,0 +1,118 @@
+[
+  {
+    "id": "field-6d67d1f8-5504-4c81-abe0-2933a776c2ff",
+    "label": "Leaf_rust",
+    "lat": -1.29,
+    "lon": 36.82,
+    "confidence": 0.95,
+    "createdAt": "2026-10-03T20:58:05.444Z"
+  },
+  {
+    "id": "demo-cluster-0",
+    "label": "Leaf_rust",
+    "lat": -1.28,
+    "lon": 36.84,
+    "confidence": 0.84,
+    "observations": [
+      "spreading",
+      "underside"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  },
+  {
+    "id": "demo-cluster-1",
+    "label": "Leaf_rust",
+    "lat": -1.31,
+    "lon": 36.85,
+    "confidence": 0.85,
+    "observations": [
+      "spreading",
+      "underside"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  },
+  {
+    "id": "demo-cluster-2",
+    "label": "Leaf_rust",
+    "lat": -1.26,
+    "lon": 36.8,
+    "confidence": 0.86,
+    "observations": [
+      "spreading",
+      "underside"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  },
+  {
+    "id": "demo-cluster-3",
+    "label": "Leaf_rust",
+    "lat": -1.32,
+    "lon": 36.81,
+    "confidence": 0.87,
+    "observations": [
+      "spreading",
+      "underside"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  },
+  {
+    "id": "demo-cluster-4",
+    "label": "Leaf_rust",
+    "lat": -1.28,
+    "lon": 36.79,
+    "confidence": 0.88,
+    "observations": [
+      "spreading",
+      "underside"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  },
+  {
+    "id": "demo-cluster-5",
+    "label": "Leaf_rust",
+    "lat": -1.25,
+    "lon": 36.83,
+    "confidence": 0.89,
+    "observations": [
+      "spreading",
+      "underside"
+    ],
+    "language": "sw",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  },
+  {
+    "id": "demo-isolated-0",
+    "label": "Healthy",
+    "lat": -0.83,
+    "lon": 37.12,
+    "confidence": 0.78,
+    "observations": [],
+    "language": "en",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  },
+  {
+    "id": "demo-isolated-1",
+    "label": "Miner",
+    "lat": -1.67,
+    "lon": 36.28,
+    "confidence": 0.78,
+    "observations": [],
+    "language": "en",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  },
+  {
+    "id": "demo-isolated-2",
+    "label": "Healthy",
+    "lat": -0.63,
+    "lon": 36.57,
+    "confidence": 0.78,
+    "observations": [],
+    "language": "en",
+    "createdAt": "2026-10-03T21:07:11.103180+00:00"
+  }
+]

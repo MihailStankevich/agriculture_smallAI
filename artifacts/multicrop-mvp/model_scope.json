@@ -1,0 +1,12 @@
+{
+  "dataset": "PlantVillage color subset",
+  "supported_crops": [
+    "Maize",
+    "Potato",
+    "Tomato",
+    "Bell pepper"
+  ],
+  "class_count": 12,
+  "image_size": 160,
+  "notes": "Controlled leaf images; validate field photos locally before treatment."
+}

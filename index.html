@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#123b2a">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/styles.css?v=3">
+  <link rel="stylesheet" href="/model.css">
+  <style>
+    .assist-note{color:#66756d;font-size:.76rem!important;line-height:1.45;margin-top:12px!important}
+    .sms-fallback{margin-top:21px;padding:15px;background:#f3f7ee;border:1px solid #d9e7cf;border-radius:13px}
+    .sms-fallback h3{font-size:1rem}.sms-fallback p{font-size:.8rem;line-height:1.45;color:#365946}
+    .sms-fallback label{display:grid;gap:6px;margin-top:12px;font-size:.76rem;font-weight:800;color:#365946}
+    .sms-fallback input{width:100%;border:1px solid #b8cdb7;background:white;border-radius:9px;padding:9px 10px;color:#133c2b}
+  </style>
+  <title>CropSignal | Coffee field app</title>
+</head>
+<body>
+  <main class="shell">
+    <nav class="topbar">
+      <a class="brand" href="/"><span class="mark">⌁</span>CropSignal</a>
+      <div class="status"><i class="dot" id="connectionDot"></i><span id="connectionLabel">Checking connection…</span></div>
+      <a class="button secondary" href="/dashboard.html">Extension dashboard →</a>
+    </nav>
+    <section class="hero">
+      <div><p class="eyebrow">Coffee health, without a signal</p><h1>One leaf can help<br><span class="emphasis">protect a whole slope.</span></h1><p>Check a coffee leaf privately on this phone. When a connection returns, a small anonymous signal can help extension teams see a risk pattern early.</p></div>
+      <div class="hero-card"><p class="eyebrow">Privacy by design</p><strong>≈ 1 km</strong><span>Location is rounded before it leaves this device. No photos are uploaded.</span></div>
+    </section>
+    <section class="grid">
+      <section class="card">
+        <div class="step"><span>1</span><div><p class="eyebrow">Coffee field check</p><h2>Check one coffee leaf</h2></div></div>
+        <div class="field-controls">
+          <div class="coffee-context"><b>Crop: Arabica coffee</b><span>One leaf, close and in natural light.</span></div>
+          <label class="crop-select" for="languageSelect">Guidance language<select id="languageSelect"><option value="en">English</option><option value="sw">Kiswahili · pilot</option></select></label>
+        </div>
+        <fieldset class="observation-card"><legend>What do you see? <span>Optional · stays with this anonymous signal</span></legend><div class="observation-options"><label><input type="checkbox" name="observation" value="spreading"> Marks are spreading</label><label><input type="checkbox" name="observation" value="wet"> Leaf or field is wet</label><label><input type="checkbox" name="observation" value="many-plants"> More than one plant</label><label><input type="checkbox" name="observation" value="underside"> Marks under the leaf</label></div><p>Use this context to help the extension worker prioritise review. It does not change the model’s result.</p></fieldset>
+        <div class="camera"><div class="camera-copy" id="cameraCopy"><b>Take or select a coffee-leaf photo</b><span>Fill the frame with one leaf. The photo stays on this phone.</span><label class="file-label">Choose a photo<input id="photoInput" type="file" accept="image/*" capture="environment"></label></div><img id="preview" alt="Selected coffee leaf preview" hidden></div>
+        <p class="model-status" id="modelStatus">Loading the on-device coffee model…</p>
+        <div class="actions"><button class="button dark" id="analyzeBtn" disabled>Loading model…</button><button class="button secondary" id="sampleBtn">Try coffee-rust demo</button></div>
+        <div class="analysis" id="analysis">
+          <div class="risk">On-device model result · needs local validation</div>
+          <div class="diagnosis" id="resultLabel"></div>
+          <p id="resultText"></p>
+          <p><b>Suggested next step:</b> <span id="advice"></span></p>
+          <div class="actions"><button class="button secondary" id="speakBtn">▶ Hear guidance</button><button class="button secondary" id="smsBtn">Prepare SMS report</button></div>
+          <p class="assist-note" id="voiceNote">For the Kiswahili rust and uncertainty guidance, CropSignal plays a pre-generated audio clip saved on this phone. Other guidance uses an installed device voice. SMS opens the phone's messaging app; the worker chooses whether to send it.</p>
+          <div class="actions"><button class="button" id="saveBtn">Save anonymous report</button><button class="button secondary" id="newCheckBtn">Start new check</button></div>
+        </div>
+      </section>
+      <aside class="card">
+        <div class="side-title"><div><p class="eyebrow">This device</p><h2>Offline queue</h2></div><span class="queue-count" id="queueCount">0 pending</span></div>
+        <p class="empty" id="queueEmpty">No reports waiting. You can use the app without a connection; reports will wait here safely.</p>
+        <div class="queue" id="queue"></div>
+        <div class="actions"><button class="button secondary" id="demoLocationBtn">Use demo location</button></div>
+        <p class="assist-note" id="syncStatus">Auto-sync is ready: queued reports will send when a connection returns.</p>
+        <section class="sms-fallback"><p class="eyebrow">Basic-phone fallback</p><h3>Send a short SMS signal</h3><p>When mobile data is unavailable but cellular SMS works, open a short report for a local extension worker. It never includes the photo or the farmer's name.</p><label for="smsNumber">Extension-worker number<input id="smsNumber" type="tel" inputmode="tel" placeholder="+254…"></label></section>
+        <div class="privacy"><span>⌾</span><div><b>What is shared?</b><br>Diagnosis label, confidence, time and a rounded location. Never the photo or your name.</div></div>
+      </aside>
+    </section>
+    <p class="footer-note">Small AI for constrained settings: a five-class Arabica coffee model runs entirely on this device. Kiswahili guidance is a prototype and must be reviewed with local partners. It is a screening signal, not an agronomic diagnosis; validate locally before treatment.</p>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="/vendor/tf.min.js?v=2"></script>
+  <script src="/knowledge-base.js?v=2"></script>
+  <script src="/app.js?v=18"></script>
+</body>
+</html>

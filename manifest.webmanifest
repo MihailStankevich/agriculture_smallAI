@@ -1,0 +1,9 @@
+{
+  "name": "CropSignal",
+  "short_name": "CropSignal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f7ef",
+  "theme_color": "#123b2a",
+  "description": "Offline-first crop health reporting and community outbreak signals."
+}

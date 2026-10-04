@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>Updating CropSignal…</title><p>Updating the offline app…</p><script>
+// This uses a new path so that a previous service worker cannot replay an
+// already-cached reset page. It preserves local reports in localStorage.
+Promise.resolve("serviceWorker" in navigator
+  ? navigator.serviceWorker.getRegistrations().then(all => Promise.all(all.map(registration => registration.unregister())))
+  : null
+).then(() => caches.keys())
+ .then(keys => Promise.all(keys.map(key => caches.delete(key))))
+ .then(() => location.replace("/?updated=" + Date.now()));
+</script>

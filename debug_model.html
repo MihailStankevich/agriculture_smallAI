@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>CropSignal model check</title><pre id="output">Loading model test…</pre><script src="/vendor/tf.min.js"></script><script>
+(async()=>{
+  const out=document.querySelector('#output');
+  const sample=new URLSearchParams(location.search).get('image')||'/test-images/plantvillage-tomato-early-blight.jpg';
+  const [model,map,blob]=await Promise.all([tf.loadLayersModel('/model-multicrop-v2/model.json'),fetch('/model-multicrop-v2/class_indices.json').then(r=>r.json()),fetch(sample).then(r=>r.blob())]);
+  const labels=Object.keys(map).sort((a,b)=>+a-(+b)).map(k=>map[k]); const image=await createImageBitmap(blob);
+  const prediction=tf.tidy(()=>model.predict(tf.browser.fromPixels(image).resizeBilinear([160,160]).toFloat().div(127.5).sub(1).expandDims(0)));
+  const values=await prediction.data(); prediction.dispose();
+  out.textContent=JSON.stringify({top:[...values].map((score,index)=>({label:labels[index],score})).sort((a,b)=>b.score-a.score).slice(0,5)},null,2);model.dispose();
+})().catch(error=>document.querySelector('#output').textContent=String(error.stack||error));
+</script>
