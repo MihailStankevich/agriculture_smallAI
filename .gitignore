@@ -1,2 +1,9 @@
 __pycache__/
 tmp/
+
+# Video, voice-over and subtitle working files (kept local, not in the repo)
+/*.mp4
+/*.m4a
+/*.srt
+/*.wav
+/*.webm
